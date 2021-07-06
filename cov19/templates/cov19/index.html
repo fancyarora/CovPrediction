@@ -1,0 +1,124 @@
+﻿{% extends "cov19/base.html" %}
+{% load humanize %}
+{% load to_space %}
+
+{% block content %}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {
+        'packages':['geochart'],
+        'mapsApiKey': 'AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY'
+      });
+      google.charts.setOnLoadCallback(drawRegionsMap);
+
+      function drawRegionsMap() {
+        var data = google.visualization.arrayToDataTable([
+           ['Country', 'Total Critical Care Needed', 'Total Ventilators Needed', {'type': 'string', 'role': 'tooltip', 'p': {'html': true}}],
+           {% for item in worldResources %}
+           {% if item.geoID == "UK" %}
+           ['GB', {{item.totCriticCareNeeded}}, {{item.totVentNeeded}}, '{{item.country|to_space}}<br><b>Total Critical Care Needed:</b>{{item.totCriticCareNeeded|floatformat|intcomma}}<br><b>Total Ventilators Needed:</b>{{item.totVentNeeded|floatformat|intcomma}}<br><b>Date:</b>{{item.date}}'],
+           {% elif item.geoID == "EL" %}
+           ['GR', {{item.totCriticCareNeeded}}, {{item.totVentNeeded}}, '{{item.country|to_space}}<br><b>Total Critical Care Needed:</b>{{item.totCriticCareNeeded|floatformat|intcomma}}<br><b>Total Ventilators Needed:</b>{{item.totVentNeeded|floatformat|intcomma}}<br><b>Date:</b>{{item.date}}'],
+           {% elif item.country == "Namibia" %}
+           ['NA', {{item.totCriticCareNeeded}}, {{item.totVentNeeded}}, '{{item.country|to_space}}<br><b>Total Critical Care Needed:</b>{{item.totCriticCareNeeded|floatformat|intcomma}}<br><b>Total Ventilators Needed:</b>{{item.totVentNeeded|floatformat|intcomma}}<br><b>Date:</b>{{item.date}}'],
+           {% else %}
+           ['{{item.geoID}}', {{item.totCriticCareNeeded}}, {{item.totVentNeeded}}, '{{item.country|to_space}}<br><b>Total Critical Care Needed:</b>{{item.totCriticCareNeeded|floatformat|intcomma}}<br><b>Total Ventilators Needed:</b>{{item.totVentNeeded|floatformat|intcomma}}<br><b>Date:</b>{{item.date}}'],
+           {% endif %}
+           {% endfor %}
+        ]);
+
+        var options = {};
+           options['colorAxis'] = {colors: ['#d6eaf5','#4a9fd7']};
+           options['backgroundColor'] = '#FFFFFF';
+           options['datalessRegionColor'] = '#E5E5E5';
+           options['tooltip'] = { isHtml: true };
+           options['legend'] = 'none';
+
+
+        var chart = new google.visualization.GeoChart(document.getElementById('regions_div'));
+
+        chart.draw(data, options);
+      }
+    </script>
+<!------------------------------- WORLD CASES GRAPH -------------------------->
+<script>
+google.charts.load('current', {packages: ['corechart', 'line']});
+google.charts.setOnLoadCallback(drawBasic);
+
+function drawBasic() {
+
+      var data = new google.visualization.DataTable();
+      data.addColumn('date', 'Date');
+      data.addColumn('number', 'New Cases');
+      data.addColumn('number', 'New Deaths');
+      data.addColumn('number', 'Total Hospital Beds Needed');
+      data.addColumn('number', 'Total Critical Care Needed');
+      data.addColumn('number', 'Total Ventilators Needed');
+
+
+      data.addRows([
+        {% for item in worldStats %}
+        [new Date('{{item.date}}'), {{item.newCases}}, {{item.newDeaths}}, {{item.tothospBedNeeded}}, {{item.totCriticCareNeeded}}, {{item.totVentNeeded}}],
+        {% endfor %}
+      ]);
+
+      var options = {
+        hAxis: {
+          format: 'MMM dd, yyyy',
+        },
+        vAxis: {
+          title: 'Patients'
+        }
+      };
+      options['chartArea'] = {width:'50%'};
+      options['legend'] = {textStyle: {fontSize: 12}};
+
+      var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+
+      chart.draw(data, options);
+    }
+</script>
+
+
+<div>
+    <h1 align="center">Coronavirus Critical Stats</h1><br>
+    <br>
+    <div id="regions_div" style = "width: 100%; margin: 0 auto;"></div>
+    <hr>
+    <br>
+</div>
+
+<!--------------------------------------------------------->
+
+<h1><center>Quick Facts</center></h1>
+<br>
+<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+<table class="table">
+    <tbody>
+        <tr>
+            <td class="border">Predicted Date<br/>{{totalStats.date|date:"M d, Y"}}</td>
+            <td class="border-top-0 pt-4 d-flex justify-content-center"><i style="font-size:24px" class="fa">&#xf178;</i></td>
+            <td class="border">Total Critical Care Needed<br/>{{totalStats.totCriticCareNeeded|floatformat|intcomma}}</td>
+            <td class="border-top-0 pt-4 d-flex justify-content-center"><i style="font-size:24px" class="fa">&amp;</i></td>
+            <td class="border">Total Ventilators Needed<br/>{{totalStats.totVentNeeded|floatformat|intcomma}}</td>
+        </tr>
+        <tr><td></td></tr>
+        <tr>
+            <td class="border">Date<br/>{{totalFigs.date|date:"M d, Y"}}</td>
+            <td class="border-top-0 pt-4 d-flex justify-content-center"><i style="font-size:24px" class="fa">&#xf178;</i></td>
+            <td class="border">New Cases<br/>{{totalFigs.newCases|intcomma}}</td>
+            <td class="border-top-0 pt-4 d-flex justify-content-center"><i style="font-size:24px" class="fa">&amp;</i></td>
+            <td class="border">New Deaths<br/>{{totalFigs.newDeaths|intcomma}}</td>
+        </tr>
+    </tbody>
+</table>
+<br>
+
+<!-------------------------------------------------------->
+<hr>
+<br>
+<h1><center>Coronavirus Cases Worldwide</center></h1>
+<div id="chart_div" style = "width: 100%; height: 400px;"></div>
+
+
+{% endblock content %}

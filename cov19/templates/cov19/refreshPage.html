@@ -1,0 +1,9 @@
+﻿{% extends "cov19/base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Refresh Page</h2>
+    <a href="{% url 'refreshData' %}" class="btn btn-info" role="button">Refresh Data</a>
+    <a href="{% url 'refreshReport' %}" class="btn btn-info" role="button">Refresh Report</a>
+</div>
+{% endblock content %}
